@@ -1,0 +1,57 @@
+{
+    "name": "alleyinteractive/wp-json-meta",
+    "description": "Quietly and seamlessly store post meta as json instead of serialized php",
+    "type": "wordpress-plugin",
+    "keywords": [
+        "alleyinteractive",
+        "wordpress",
+        "post meta",
+        "serialize",
+        "json"
+    ],
+    "homepage": "https://github.com/alleyinteractive/wp-json-meta",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Matthew Boynes",
+            "email": "info@alley.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0"
+    },
+    "require-dev": {
+        "alleyinteractive/alley-coding-standards": "^1.0",
+        "alleyinteractive/composer-wordpress-autoloader": "^1.0",
+        "mantle-framework/testkit": "^0.10",
+        "szepeviktor/phpstan-wordpress": "^1.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "alleyinteractive/composer-wordpress-autoloader": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "pestphp/pest-plugin": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "wordpress-autoloader": {
+            "autoload-dev": {
+                "Alley\\WP\\Json_Meta\\Tests\\": "tests"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "phpcbf": "phpcbf .",
+        "phpcs": "phpcs .",
+        "phpunit": "phpunit",
+        "phpstan": "phpstan --memory-limit=512M",
+        "test": [
+            "@phpcs",
+            "@phpstan",
+            "@phpunit"
+        ]
+    }
+}
