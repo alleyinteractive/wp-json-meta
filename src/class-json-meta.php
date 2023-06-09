@@ -41,6 +41,15 @@ class Json_Meta {
 	}
 
 	/**
+	 * Get the registered meta keys.
+	 *
+	 * @return string[]
+	 */
+	public function get_meta_keys(): array {
+		return $this->meta_keys;
+	}
+
+	/**
 	 * Determine if the plugin should intercept the meta function for the given key.
 	 *
 	 * @param string $meta_key The meta key.
