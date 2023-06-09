@@ -2,17 +2,17 @@ includes:
   - vendor/szepeviktor/phpstan-wordpress/extension.neon
 
 parameters:
-	# Level 9 is the highest level
-	level: max
+  # Level 9 is the highest level
+  level: max
 
-	paths:
-		- src/
-		- wp-json-meta.php
+  paths:
+    - src/
+    - wp-json-meta.php
+
+  excludePaths:
+    - src/class-cli.php
 
 #    ignoreErrors:
 #        - '#PHPDoc tag @var#'
-#
-#    excludePaths:
-#        - ./*/*/FileToBeExcluded.php
 #
 #    checkMissingIterableValueType: false

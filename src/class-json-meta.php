@@ -36,7 +36,7 @@ class Json_Meta {
 		// Hook into all post meta functions.
 		add_filter( 'get_post_metadata', [ $this, 'get_post_metadata' ], 0, 4 );
 		foreach ( $this->meta_keys as $meta_key ) {
-			add_filter( "sanitize_post_meta_{$meta_key}", [ $this, 'maybe_encode' ], 0 );
+			add_filter( "sanitize_post_meta_{$meta_key}", [ $this, 'maybe_encode' ], 0, 2 );
 		}
 	}
 
@@ -62,16 +62,24 @@ class Json_Meta {
 	/**
 	 * Attempt to decode an encoded value.
 	 *
-	 * @param string $value Meta value to maybe decode.
+	 * @param string $value    Meta value to maybe decode.
+	 * @param string $meta_key The meta key.
 	 * @return mixed The decoded value, or the original value if it could not be decoded.
 	 */
-	public function maybe_decode( $value ) {
+	public function maybe_decode( $value, string $meta_key ) {
 		if ( is_string( $value ) ) {
 			$decoded = json_decode( $value, true );
 			$last_error = json_last_error();
 
 			if ( $last_error === JSON_ERROR_NONE ) {
-				return $decoded;
+				/**
+				 * Filter the JSON decoded value.
+				 *
+				 * @param mixed  $decoded  The decoded value.
+				 * @param string $meta_key The meta key.
+				 * @param string $value    The raw value.
+				 */
+				return apply_filters( 'wp_json_meta_value_after_decoding', $decoded, $meta_key, $value );
 			}
 
 			// As a last ditch attempt, try to unserialize the value.
@@ -86,11 +94,22 @@ class Json_Meta {
 	/**
 	 * JSON encode non-scalar values.
 	 *
-	 * @param mixed $value The value to (maybe) encode.
+	 * @param mixed  $value    The value to (maybe) encode.
+	 * @param string $meta_key The meta key.
 	 * @return mixed JSON encoded value, or the original value if scalar.
 	 */
-	public function maybe_encode( $value ) {
-		return is_object( $value ) || is_array( $value ) ? wp_json_encode( $value ) : $value;
+	public function maybe_encode( $value, string $meta_key ) {
+		if ( is_object( $value ) || is_array( $value ) ) {
+			/**
+			 * Filter the value before JSON encoding it.
+			 *
+			 * @param mixed  $value    The meta value to JSON encode.
+			 * @param string $meta_key The meta key.
+			 */
+			return wp_json_encode( apply_filters( 'wp_json_meta_value_before_encoding', $value, $meta_key ) );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -116,9 +135,9 @@ class Json_Meta {
 
 		if ( isset( $meta_cache[ $meta_key ] ) ) {
 			if ( $single ) {
-				return $this->maybe_decode( $meta_cache[ $meta_key ][0] );
+				return $this->maybe_decode( $meta_cache[ $meta_key ][0], $meta_key );
 			} else {
-				return array_map( [ $this, 'maybe_decode' ], $meta_cache[ $meta_key ] );
+				return array_map( [ $this, 'maybe_decode' ], $meta_cache[ $meta_key ], array_fill( 0, count( $meta_cache[ $meta_key ] ), $meta_key ) );
 			}
 		}
 

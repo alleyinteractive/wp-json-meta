@@ -33,11 +33,11 @@ class CLI extends \WP_CLI_Command {
 	 *
 	 * @subcommand convert-to-json
 	 *
-	 * @param array $args The arguments passed to the command.
-	 * @param array $assoc_args The associative arguments passed to the command.
+	 * @param array<string>      $args       The arguments passed to the command.
+	 * @param array<string,bool> $assoc_args The associative arguments passed to the command.
 	 * @return void
 	 */
-	public function convert_to_json( $args, $assoc_args ) {
+	public function convert_to_json( array $args, array $assoc_args ) {
 		global $wpdb;
 		$json_meta_plugin = get_plugin_instance();
 		$dry_run          = $assoc_args['dry-run'];
@@ -84,7 +84,7 @@ class CLI extends \WP_CLI_Command {
 
 					if ( ! $dry_run ) {
 						// TODO: Test multiple meta values matching same key, and ensure the previous value matches.
-						update_post_meta( $row->post_id, $row->meta_key, $json_meta_plugin->maybe_encode( $meta_value ), $meta_value );
+						update_post_meta( $row->post_id, $row->meta_key, $json_meta_plugin->maybe_encode( $meta_value, $row->meta_key ), $meta_value );
 					}
 					$stats['updated']++;
 				} else {
@@ -126,11 +126,11 @@ class CLI extends \WP_CLI_Command {
 	 *
 	 * @subcommand convert-to-serialized
 	 *
-	 * @param array $args The arguments passed to the command.
-	 * @param array $assoc_args The associative arguments passed to the command.
+	 * @param array<string>      $args       The arguments passed to the command.
+	 * @param array<string,bool> $assoc_args The associative arguments passed to the command.
 	 * @return void
 	 */
-	public function convert_to_serialized( $args, $assoc_args ) {
+	public function convert_to_serialized( array $args, array $assoc_args ) {
 		global $wpdb;
 		$json_meta_plugin = get_plugin_instance();
 		$dry_run          = ! empty( $assoc_args['dry-run'] );
