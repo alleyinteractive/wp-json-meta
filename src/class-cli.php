@@ -54,6 +54,12 @@ class CLI extends \WP_CLI_Command {
 			\WP_CLI::error( 'No meta keys provided.' );
 		}
 
+		$stats = [
+			'updated' => 0,
+			'failed'  => 0,
+			'skipped' => 0,
+		];
+
 		$meta_key_placeholders = implode( ', ', array_fill( 0, count( $meta_keys ), '%s' ) );
 
 		// First look at how many rows there are to convert and create a progress bar.
@@ -70,14 +76,19 @@ class CLI extends \WP_CLI_Command {
 					$meta_value = maybe_unserialize( $row->meta_value );
 					if ( ! is_array( $meta_value ) && ! is_object( $meta_value ) ) {
 						\WP_CLI::warning( "Failed to unserialize meta value for post {$row->post_id} and meta key {$row->meta_key}. Meta value:" );
-						\WP_CLI::line( $row->meta_value );
+						\WP_CLI::line( var_export( $row->meta_value, true ) );
+						$stats['failed']++;
 						$progress->tick();
 						continue;
 					}
 
 					if ( ! $dry_run ) {
-						update_post_meta( $row->post_id, $row->meta_key, $json_meta_plugin->maybe_encode( $meta_value ) );
+						// TODO: Test multiple meta values matching same key, and ensure the previous value matches.
+						update_post_meta( $row->post_id, $row->meta_key, $json_meta_plugin->maybe_encode( $meta_value ), $meta_value );
 					}
+					$stats['updated']++;
+				} else {
+					$stats['skipped']++;
 				}
 				$progress->tick();
 			}
@@ -86,5 +97,7 @@ class CLI extends \WP_CLI_Command {
 		} while ( count( $meta ) === 1000 );
 
 		$progress->finish();
+
+		\WP_CLI::success( "Process complete! Updated {$stats['updated']} meta value(s), skipped {$stats['skipped']}, and failed to update {$stats['failed']}" );
 	}
 }
