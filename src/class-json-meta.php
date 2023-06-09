@@ -34,9 +34,9 @@ class Json_Meta {
 		}
 
 		// Hook into all post meta functions.
-		add_filter( 'get_post_metadata', [ $this, 'get_post_metadata' ], 10, 4 );
+		add_filter( 'get_post_metadata', [ $this, 'get_post_metadata' ], 0, 4 );
 		foreach ( $this->meta_keys as $meta_key ) {
-			add_filter( "sanitize_post_meta_{$meta_key}", [ $this, 'maybe_encode' ], 10, 3 );
+			add_filter( "sanitize_post_meta_{$meta_key}", [ $this, 'maybe_encode' ], 0 );
 		}
 	}
 
@@ -102,11 +102,7 @@ class Json_Meta {
 
 		if ( ! $meta_cache ) {
 			$meta_cache = update_meta_cache( 'post', array( $object_id ) );
-			if ( isset( $meta_cache[ $object_id ] ) ) {
-				$meta_cache = $meta_cache[ $object_id ];
-			} else {
-				$meta_cache = null;
-			}
+			$meta_cache = $meta_cache[ $object_id ] ?? null;
 		}
 
 		if ( isset( $meta_cache[ $meta_key ] ) ) {

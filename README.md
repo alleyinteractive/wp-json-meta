@@ -17,3 +17,7 @@ add_filter( 'wp_json_meta_keys', function( $keys ) {
     return $keys;
 } );
 ```
+
+## Caveats
+
+* This plugin is a one-way road. Once you've stored meta as json, you can't go back to storing it as serialized php (unless you write your own code to do so).

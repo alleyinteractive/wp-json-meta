@@ -40,5 +40,4 @@ function main(): void {
 
 	$plugin->boot();
 }
-
 add_action( 'after_setup_theme', __NAMESPACE__ . '\main' );
