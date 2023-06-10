@@ -9,16 +9,38 @@ This plugin allows you to store non-scalar post meta as json instead of serializ
 ## Instructions for Use
 
 1. Install and activate the plugin.
-2. Register the meta keys you want to store as json by adding them to the `wp_json_meta_keys` filter. For example:
+2. Register the meta keys you want to store as json using the `wp_json_meta_keys` filter. This filters an associative array of `[meta key] => int`. More on the int value below, for now, here's a basic example:
 
    ```php
    add_filter( 'wp_json_meta_keys', function( $keys ) {
-       $keys[] = 'my_meta_key';
+       $keys['my_meta_key'] = 1;
        return $keys;
    } );
    ```
 
 3. That's it! Now when you use post meta functions such as `get_post_meta` or `update_post_meta` with the registered meta key, the plugin will automatically encode and decode the value as json.
+
+### JSON Encoding Scalar Values
+
+Out of the box, WordPress stores scalar values as strings, which can easily cause confusion. For instance:
+
+```bash
+wp> update_post_meta( $post_id, 'meta_key', null );
+=> bool(true)
+wp> is_null( get_post_meta( $post_id, 'meta_key', true ) );
+=> bool(false)
+```
+
+This plugin gives developers the option to maintain parity with WordPress core and only encode and decode arrays and objects, or to encode scalar values as json as well. When registering a meta key, pass a value of `2` to also encode scalar values. For example:
+
+   ```php
+   add_filter( 'wp_json_meta_keys', function( $keys ) {
+       $keys['my_meta_key'] = 2;
+       return $keys;
+   } );
+   ```
+
+Be advised that encoding **_strings_** as json will make them more difficult to use in meta queries, as they will be stored with quotes. A meta query, therefore, would need to also include quotes.
 
 ## Converting Existing Meta
 
