@@ -55,8 +55,28 @@ class Json_Meta {
 	 * @param string $meta_key The meta key.
 	 * @return bool
 	 */
-	protected function should_handle( string $meta_key ): bool {
+	protected function should_handle_key( string $meta_key ): bool {
 		return in_array( $meta_key, $this->meta_keys, true );
+	}
+
+	/**
+	 * Determine if the meta value should be JSON encoded for the given key.
+	 *
+	 * @param mixed  $value    The value to encode.
+	 * @param string $meta_key The meta key.
+	 * @return bool
+	 */
+	public function should_encode( $value, string $meta_key): bool {
+		return is_array( $value )
+			|| is_object( $value )
+			/**
+			 * Filter whether scalar values should be JSON encoded for the given meta key.
+			 *
+			 * @param bool   $encode   Whether the meta key should always be JSON encoded.
+			 * @param string $meta_key The meta key.
+			 * @param mixed  $value    The value to encode.
+			 */
+			|| apply_filters( 'wp_json_meta_encode_scalar_values', false, $meta_key, $value );
 	}
 
 	/**
@@ -99,7 +119,7 @@ class Json_Meta {
 	 * @return mixed JSON encoded value, or the original value if scalar.
 	 */
 	public function maybe_encode( $value, string $meta_key ) {
-		if ( is_object( $value ) || is_array( $value ) ) {
+		if ( $this->should_encode( $value, $meta_key ) ) {
 			/**
 			 * Filter the value before JSON encoding it.
 			 *
@@ -122,7 +142,7 @@ class Json_Meta {
 	 * @return mixed The value to return.
 	 */
 	public function get_post_metadata( $value, int $object_id, string $meta_key, bool $single ) {
-		if ( ! $this->should_handle( $meta_key ) ) {
+		if ( ! $this->should_handle_key( $meta_key ) ) {
 			return $value;
 		}
 

@@ -74,6 +74,7 @@ class CLI extends \WP_CLI_Command {
 			foreach ( $meta as $row ) {
 				if ( is_serialized( $row->meta_value ) ) {
 					$meta_value = maybe_unserialize( $row->meta_value );
+					// WordPress only serializes arrays and objects, if this is anything else there's a problem.
 					if ( ! is_array( $meta_value ) && ! is_object( $meta_value ) ) {
 						\WP_CLI::warning( "Failed to unserialize meta value for post {$row->post_id} and meta key {$row->meta_key}. Meta value:" );
 						\WP_CLI::line( var_export( $row->meta_value, true ) );
@@ -171,8 +172,8 @@ class CLI extends \WP_CLI_Command {
 				$last_error = json_last_error();
 
 				if ( $last_error === JSON_ERROR_NONE ) {
-					// If the value is not an array or object, it can be left alone.
-					if ( is_array( $decoded ) || is_object( $decoded ) ) {
+					// If the value should not be encoded, it can be skipped.
+					if ( $json_meta_plugin->should_encode( $decoded, $row->meta_key ) ) {
 						if ( ! $dry_run ) {
 							update_post_meta( $row->post_id, $row->meta_key, $decoded, $row->meta_value );
 						} else {
