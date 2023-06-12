@@ -15,11 +15,18 @@ class Json_Meta {
 	const ENCODE_EVERYTHING 	    = 2;
 
 	/**
+	 * Whether or not the plugin has been hooked into WordPress.
+	 *
+	 * @var bool
+	 */
+	protected $hooked = false;
+
+	/**
 	 * The meta keys this plugin should take over encoding/decoding.
 	 *
 	 * @var int[]
 	 */
-	protected $meta_keys;
+	protected $meta_keys = [];
 
 	/**
 	 * The meta key for a null value that needs to persist through WP's null checks.
@@ -53,17 +60,32 @@ class Json_Meta {
 		 *
 		 * @param int[] $meta_keys Array of `[meta key] => option` to JSON encode vs serialize.
 		 */
-		$this->meta_keys = apply_filters( 'wp_json_meta_keys', [] );
+		$meta_keys = apply_filters( 'wp_json_meta_keys', [] );
 
-		if ( empty( $this->meta_keys ) ) {
-			return;
+		if ( ! empty( $meta_keys ) ) {
+			$this->register_meta_keys( $meta_keys );
+		}
+	}
+
+	/**
+	 * Register meta keys to be encoded/decoded.
+	 *
+	 * @param int[] $meta_keys Array of `[meta key] => option` to JSON encode. See the `wp_json_meta_keys` filter for
+	 *                         more info.
+	 */
+	public function register_meta_keys( array $meta_keys ): void {
+		if ( ! $this->hooked ) {
+			// Hook into all post meta functions.
+			add_filter( 'get_post_metadata', [ $this, 'get_post_metadata' ], 0, 4 );
 		}
 
-		// Hook into all post meta functions.
-		add_filter( 'get_post_metadata', [ $this, 'get_post_metadata' ], 0, 4 );
-		foreach ( $this->meta_keys as $meta_key => $option ) {
+		// Hook up any new meta keys.
+		$meta_keys_to_hook = array_diff( array_keys( $meta_keys ), $this->get_meta_keys() );
+		foreach ( $meta_keys_to_hook as $meta_key ) {
 			add_filter( "sanitize_post_meta_{$meta_key}", [ $this, 'maybe_encode' ], 0, 2 );
 		}
+
+		$this->meta_keys = array_merge( $this->meta_keys, $meta_keys );
 	}
 
 	/**
@@ -95,7 +117,7 @@ class Json_Meta {
 	public function should_encode( $value, string $meta_key ): bool {
 		return is_array( $value )
 			|| is_object( $value )
-			|| self::ENCODE_EVERYTHING === $this->meta_keys[ $meta_key ];
+			|| self::ENCODE_EVERYTHING === ( $this->meta_keys[ $meta_key ] ?? 0 );
 	}
 
 	/**
@@ -110,7 +132,7 @@ class Json_Meta {
 			$decoded = json_decode( $value, true );
 			$last_error = json_last_error();
 
-			if ( $last_error === JSON_ERROR_NONE ) {
+			if ( JSON_ERROR_NONE === $last_error ) {
 				/**
 				 * Filter the JSON decoded value.
 				 *
@@ -121,7 +143,7 @@ class Json_Meta {
 				return apply_filters( 'wp_json_meta_value_after_decoding', $decoded, $meta_key, $value );
 			}
 
-			// As a last ditch attempt, try to unserialize the value.
+			// To support unconverted values, attempt to unserialize the value.
 			if ( is_serialized( $value ) ) {
 				return maybe_unserialize( $value );
 			}
