@@ -24,12 +24,30 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Load the plugin's main files.
 require_once __DIR__ . '/src/class-json-meta.php';
 
+// Load the CLI command.
+if ( defined( 'WP_CLI' ) && WP_CLI ) {
+	require_once __DIR__ . '/src/class-cli.php';
+}
+
+/**
+ * Get the main plugin instance.
+ *
+ * @return Json_Meta Plugin class instance.
+ */
+function get_plugin_instance(): Json_Meta {
+	static $plugin;
+	if ( ! $plugin ) {
+		$plugin = new Json_Meta();
+	}
+	return $plugin;
+}
+
 /**
  * Instantiate the plugin.
  */
 function main(): void {
 	// Create the core plugin object.
-	$plugin = new Json_Meta();
+	$plugin = get_plugin_instance();
 
 	/**
 	 * Announce that the plugin has been initialized and share the instance.
@@ -40,5 +58,4 @@ function main(): void {
 
 	$plugin->boot();
 }
-
 add_action( 'after_setup_theme', __NAMESPACE__ . '\main' );

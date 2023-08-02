@@ -13,5 +13,10 @@ require_once __DIR__ . '/../vendor/autoload.php';
 \Mantle\Testing\manager()
 	->maybe_rsync_plugin()
 	// Load the main file of the plugin.
-	->loaded( fn () => require_once __DIR__ . '/../wp-json-meta.php' )
+	->loaded( function () {
+		require_once __DIR__ . '/../wp-json-meta.php';
+
+		// We'll boot in tests.
+		remove_action( 'after_setup_theme', 'Alley\WP\Json_Meta\main' );
+	} )
 	->install();
