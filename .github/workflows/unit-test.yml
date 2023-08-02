@@ -6,7 +6,7 @@ on:
       - develop
   pull_request:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 0 1 * *'
 
 jobs:
   php-tests:
