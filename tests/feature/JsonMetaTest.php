@@ -2,10 +2,12 @@
 namespace Alley\WP\Json_Meta\Tests\Feature;
 
 use Alley\WP\Json_Meta\Tests\Test_Case;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 
 use function Alley\WP\Json_Meta\main;
 
-class Json_Meta_Test extends Test_Case {
+class JsonMetaTest extends Test_Case {
 	/**
 	 * Get a raw post meta value from the database.
 	 *
@@ -35,7 +37,7 @@ class Json_Meta_Test extends Test_Case {
 	 * Scalar meta dataProvider.
 	 * @return array
 	 */
-	public function scalar_meta_provider() {
+	public static function scalar_meta_provider() {
 		return [
 			[ 'string', 'string' ],
 			[ 'int', 123 ],
@@ -45,7 +47,7 @@ class Json_Meta_Test extends Test_Case {
 		];
 	}
 
-	/** @test */
+	#[Test]
 	public function meta_should_store_as_json_when_registered_to_do_so() {
 		$post_id = $this->factory()->post->create();
 		$json_meta = 'json';
@@ -64,10 +66,8 @@ class Json_Meta_Test extends Test_Case {
 		$this->assertEquals( serialize( $value ), $this->get_meta_value_from_database( $post_id, $serialized_meta ) );
 	}
 
-	/**
-	 * @test
-	 * @dataProvider scalar_meta_provider
-	 */
+	#[Test]
+	#[DataProvider( 'scalar_meta_provider' )]
 	public function scalar_meta_can_be_configured_to_not_store_as_json( $meta_key, $value ) {
 		$post_id = $this->factory()->post->create();
 		$this->register_meta_key( $meta_key );
@@ -84,12 +84,12 @@ class Json_Meta_Test extends Test_Case {
 		$this->assertEquals( (string) $value, $this->get_meta_value_from_database( $post_id, $meta_key ) );
 	}
 
-	/**
-	 * @test
-	 * @dataProvider scalar_meta_provider
-	 */
+	#[Test]
+	#[DataProvider( 'scalar_meta_provider' )]
 	public function scalar_meta_can_be_configured_to_store_as_json( $meta_key, $value ) {
-		$post_id = $this->factory()->post->create();
+		// The plugin instance persists between tests, so avoid reusing keys registered with a different option.
+		$meta_key = "encode_everything_{$meta_key}";
+		$post_id  = $this->factory()->post->create();
 		$this->register_meta_key( $meta_key, 2 );
 
 		// Initialize the plugin.

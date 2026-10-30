@@ -12,7 +12,7 @@ namespace Alley\WP\Json_Meta;
  */
 class Json_Meta {
 	const ENCODE_OBJECTS_AND_ARRAYS = 1;
-	const ENCODE_EVERYTHING 	    = 2;
+	const ENCODE_EVERYTHING         = 2;
 
 	/**
 	 * Whether or not the plugin has been hooked into WordPress.
@@ -129,7 +129,7 @@ class Json_Meta {
 	 */
 	public function maybe_decode( $value, string $meta_key ) {
 		if ( is_string( $value ) ) {
-			$decoded = json_decode( $value, true );
+			$decoded    = json_decode( $value, true );
 			$last_error = json_last_error();
 
 			if ( JSON_ERROR_NONE === $last_error ) {
@@ -190,7 +190,7 @@ class Json_Meta {
 		$meta_cache = wp_cache_get( $object_id, 'post_meta' );
 
 		if ( ! $meta_cache ) {
-			$meta_cache = update_meta_cache( 'post', array( $object_id ) );
+			$meta_cache = update_meta_cache( 'post', [ $object_id ] );
 			$meta_cache = $meta_cache[ $object_id ] ?? null;
 		}
 

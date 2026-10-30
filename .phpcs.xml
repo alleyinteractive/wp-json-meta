@@ -29,6 +29,7 @@
   <exclude-pattern>tests/</exclude-pattern>
   <exclude-pattern>build/</exclude-pattern>
   <exclude-pattern>vendor/</exclude-pattern>
+  <exclude-pattern>src/class-cli.php</exclude-pattern>
 
   <!-- The version set here matches the minimum version tested in buddy.yml. -->
   <config name="minimum_supported_wp_version" value="6.0" />
